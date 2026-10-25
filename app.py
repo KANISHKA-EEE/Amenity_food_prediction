@@ -1,10 +1,11 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from database import init_db, get_db
 from datetime import datetime
 from bson import ObjectId
 
 app = Flask(__name__)
-app.secret_key = 'amenity_food_secret_2024'
+app.secret_key = os.environ.get("amenity_food_secret_2024", "temporary-local-key")
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
