@@ -1,9 +1,12 @@
+import os
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import DuplicateKeyError
 from bson import ObjectId
 
-MONGO_URI = 'mongodb://localhost:27017/Amenity'
-
+MONGO_URI = os.environ.get(
+    "MONGO_URI",
+    "mongodb://localhost:27017/"
+)
 _client = None
 _db     = None
 
