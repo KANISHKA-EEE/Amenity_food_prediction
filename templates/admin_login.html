@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin Login – Amenity Food</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .login-wrapper {
+    display: flex; width: 100%; max-width: 900px;
+    background: white; border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.4);
+    overflow: hidden; animation: slideUp .5s ease;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  /* Left panel */
+  .login-left {
+    flex: 1; background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    padding: 3rem 2.5rem; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: white; text-align: center;
+  }
+  .login-left .shield { font-size: 5rem; margin-bottom: 1.5rem; }
+  .login-left h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: .8rem; }
+  .login-left p  { font-size: .9rem; opacity: .75; line-height: 1.7; }
+  .features-list { margin-top: 2rem; text-align: left; width: 100%; }
+  .features-list li {
+    list-style: none; display: flex; align-items: center; gap: .7rem;
+    padding: .5rem 0; border-bottom: 1px solid rgba(255,255,255,.1);
+    font-size: .88rem; opacity: .85;
+  }
+  .features-list li i { color: #ff6b35; width: 18px; }
+  /* Right panel */
+  .login-right {
+    flex: 1; padding: 3rem 2.5rem;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .login-right .brand { text-align: center; margin-bottom: 2rem; }
+  .login-right .brand span { font-size: 2.5rem; }
+  .login-right .brand h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+  .login-right .brand p  { color: #888; font-size: .85rem; }
+  .admin-badge {
+    display: inline-block; background: #fee2e2; color: #dc2626;
+    font-size: .75rem; font-weight: 600; padding: .2rem .7rem;
+    border-radius: 20px; margin-top: .3rem;
+  }
+  .form-title { font-size: 1.2rem; font-weight: 600; color: #1a1a2e; margin-bottom: 1.5rem; }
+  .input-group {
+    display: flex; align-items: center; gap: .7rem;
+    border: 2px solid #eee; border-radius: 12px;
+    padding: .75rem 1rem; margin-bottom: 1rem;
+    transition: border-color .3s;
+  }
+  .input-group:focus-within { border-color: #0f3460; }
+  .input-group i { color: #aaa; width: 16px; }
+  .input-group input {
+    flex: 1; border: none; outline: none;
+    font-family: 'Poppins', sans-serif; font-size: .95rem;
+  }
+  .btn-login {
+    width: 100%; padding: .9rem;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    color: white; border: none; border-radius: 12px;
+    font-family: 'Poppins', sans-serif; font-size: 1rem;
+    font-weight: 600; cursor: pointer; transition: all .3s;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(15,52,96,.4); }
+  .alert-error {
+    background: #fee2e2; color: #dc2626;
+    border: 1px solid #fca5a5; border-radius: 10px;
+    padding: .75rem 1rem; font-size: .88rem; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .back-link {
+    display: block; text-align: center; margin-top: 1.5rem;
+    color: #888; font-size: .85rem; text-decoration: none;
+  }
+  .back-link:hover { color: #0f3460; }
+  @media(max-width:640px){ .login-left{ display:none; } }
+</style>
+</head>
+<body>
+<div class="login-wrapper">
+
+  <!-- Left: Info Panel -->
+  <div class="login-left">
+    <div class="shield">🛡️</div>
+    <h2>Admin Portal</h2>
+    <p>Manage your Amenity Food system securely from one place.</p>
+    <ul class="features-list">
+      <li><i class="fa fa-plus-circle"></i> Add new food items</li>
+      <li><i class="fa fa-edit"></i> Update food prices</li>
+      <li><i class="fa fa-toggle-on"></i> Mark available / unavailable</li>
+      <li><i class="fa fa-list-alt"></i> View all orders</li>
+      <li><i class="fa fa-brain"></i> View prediction reports</li>
+      <li><i class="fa fa-tags"></i> Manage menu categories</li>
+    </ul>
+  </div>
+
+  <!-- Right: Login Form -->
+  <div class="login-right">
+    <div class="brand">
+      <span>🍽️</span>
+      <h1>Amenity Food</h1>
+      <p>Smart Food Ordering System</p>
+      <span class="admin-badge"><i class="fa fa-shield-alt"></i> Admin Access Only</span>
+    </div>
+
+    <p class="form-title">Sign in to Admin Dashboard</p>
+
+    {% if error %}
+    <div class="alert-error"><i class="fa fa-exclamation-circle"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/login">
+      <div class="input-group">
+        <i class="fa fa-user-shield"></i>
+        <input type="text" name="username" placeholder="Admin Username" required autofocus/>
+      </div>
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" name="password" placeholder="Password" required/>
+      </div>
+      <button type="submit" class="btn-login">
+        <i class="fa fa-sign-in-alt"></i> Login to Dashboard
+      </button>
+    </form>
+
+    <a href="/login" class="back-link"><i class="fa fa-arrow-left"></i> Back to Customer Login</a>
+  </div>
+
+</div>
+</body>
+</html>

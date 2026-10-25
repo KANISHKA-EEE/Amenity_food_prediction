@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin Dashboard – Amenity Food</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin.css') }}"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* Sidebar layout */
+  .admin-layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 240px; background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0;
+    height: 100vh; z-index: 100; transition: transform .3s;
+  }
+  .sidebar-brand {
+    padding: 1.5rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,.1);
+    display: flex; align-items: center; gap: .7rem;
+  }
+  .sidebar-brand span { font-size: 1.6rem; }
+  .sidebar-brand h2 { color: white; font-size: .95rem; font-weight: 700; line-height: 1.2; }
+  .sidebar-brand small { color: #ff6b35; font-size: .72rem; }
+
+  .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+  .nav-section-title {
+    color: rgba(255,255,255,.4); font-size: .7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: .8rem 1.2rem .3rem;
+  }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .75rem 1.2rem; color: rgba(255,255,255,.75);
+    text-decoration: none; font-size: .88rem; font-weight: 500;
+    transition: all .2s; border-left: 3px solid transparent;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active {
+    background: rgba(255,255,255,.08); color: white;
+    border-left-color: #ff6b35;
+  }
+  .sidebar-nav a i { width: 18px; font-size: .9rem; }
+
+  .sidebar-footer {
+    padding: 1rem 1.2rem; border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .sidebar-user {
+    display: flex; align-items: center; gap: .7rem;
+    color: rgba(255,255,255,.8); font-size: .85rem; margin-bottom: .8rem;
+  }
+  .sidebar-user i { font-size: 1.5rem; color: #ff6b35; }
+  .btn-logout {
+    display: flex; align-items: center; gap: .5rem; width: 100%;
+    padding: .6rem 1rem; background: rgba(255,107,53,.15); color: #ff6b35;
+    border: 1px solid rgba(255,107,53,.3); border-radius: 8px;
+    text-decoration: none; font-size: .85rem; font-weight: 500; transition: all .2s;
+  }
+  .btn-logout:hover { background: #ff6b35; color: white; }
+
+  /* Main content */
+  .main-content { margin-left: 240px; flex: 1; background: #f4f6fb; min-height: 100vh; }
+
+  .topbar {
+    background: white; padding: 1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h1 { font-size: 1.2rem; color: #1a1a2e; font-weight: 700; }
+  .topbar-right { display: flex; align-items: center; gap: 1rem; }
+  .topbar-badge {
+    background: #fee2e2; color: #dc2626;
+    padding: .3rem .8rem; border-radius: 20px; font-size: .78rem; font-weight: 600;
+  }
+
+  .page-section { display: none; padding: 2rem; }
+  .page-section.active { display: block; }
+
+  /* Stats */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 1.2rem; margin-bottom: 2rem;
+  }
+  .stat-card {
+    border-radius: 16px; padding: 1.5rem; color: white;
+    display: flex; align-items: center; gap: 1.2rem;
+    box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  }
+  .stat-card.blue   { background: linear-gradient(135deg,#3b82f6,#1d4ed8); }
+  .stat-card.green  { background: linear-gradient(135deg,#10b981,#065f46); }
+  .stat-card.orange { background: linear-gradient(135deg,#f59e0b,#d97706); }
+  .stat-card.purple { background: linear-gradient(135deg,#8b5cf6,#6d28d9); }
+  .stat-icon { font-size: 2rem; opacity: .8; }
+  .stat-card h3 { font-size: 1.8rem; font-weight: 700; }
+  .stat-card p  { font-size: .85rem; opacity: .9; }
+
+  /* Charts */
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  @media(max-width:900px){ .charts-row{ grid-template-columns:1fr; } }
+  .chart-box {
+    background: white; border-radius: 16px; padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+  }
+  .chart-box h3 { font-size: 1rem; color: #555; margin-bottom: 1rem; }
+
+  /* Cards */
+  .admin-card {
+    background: white; border-radius: 16px; padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,.08); margin-bottom: 1.5rem;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.2rem; padding-bottom: .8rem; border-bottom: 2px solid #f0f0f0;
+  }
+  .card-header h3 { font-size: 1.05rem; color: #1a1a2e; font-weight: 600; }
+
+  /* Form */
+  .admin-form { display: flex; flex-wrap: wrap; gap: .8rem; align-items: flex-end; }
+  .admin-form input, .admin-form select {
+    flex: 1; min-width: 140px; padding: .65rem 1rem;
+    border: 2px solid #eee; border-radius: 10px;
+    font-family: 'Poppins', sans-serif; font-size: .9rem; outline: none; transition: border-color .2s;
+  }
+  .admin-form input:focus, .admin-form select:focus { border-color: #0f3460; }
+
+  /* Table */
+  .table-responsive { overflow-x: auto; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .admin-table th {
+    background: #f8f9fa; padding: .8rem 1rem; text-align: left;
+    color: #555; font-weight: 600; border-bottom: 2px solid #eee;
+  }
+  .admin-table td { padding: .75rem 1rem; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  .admin-table tr:hover td { background: #fafafa; }
+
+  /* Category table with actions */
+  .cat-pill {
+    display: inline-block; padding: .3rem .9rem; border-radius: 20px;
+    font-size: .8rem; font-weight: 600;
+  }
+  .cat-breakfast { background:#fef3c7; color:#92400e; }
+  .cat-lunch     { background:#d1fae5; color:#065f46; }
+  .cat-snacks    { background:#fee2e2; color:#991b1b; }
+  .cat-dinner    { background:#dbeafe; color:#1e40af; }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg,#1a1a2e,#0f3460); color: white;
+    border: none; padding: .7rem 1.4rem; border-radius: 10px;
+    cursor: pointer; font-family: 'Poppins', sans-serif;
+    font-size: .9rem; font-weight: 600; transition: all .2s;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(15,52,96,.35); }
+  .btn-success {
+    background: linear-gradient(135deg,#10b981,#065f46); color: white;
+    border: none; padding: .7rem 1.4rem; border-radius: 10px;
+    cursor: pointer; font-family: 'Poppins', sans-serif;
+    font-size: .9rem; font-weight: 600; transition: all .2s;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .btn-edit {
+    background: #dbeafe; color: #1d4ed8; border: none; padding: .35rem .7rem;
+    border-radius: 6px; cursor: pointer; margin-right: .3rem; transition: all .2s;
+  }
+  .btn-edit:hover { background: #1d4ed8; color: white; }
+  .btn-del {
+    background: #fee2e2; color: #dc2626; border: none; padding: .35rem .7rem;
+    border-radius: 6px; cursor: pointer; transition: all .2s;
+  }
+  .btn-del:hover { background: #dc2626; color: white; }
+  .btn-toggle-on  {
+    background: #d1fae5; color: #065f46; border: none; padding: .35rem .7rem;
+    border-radius: 6px; cursor: pointer; transition: all .2s; font-size: .8rem;
+  }
+  .btn-toggle-on:hover  { background: #065f46; color: white; }
+  .btn-toggle-off {
+    background: #fee2e2; color: #dc2626; border: none; padding: .35rem .7rem;
+    border-radius: 6px; cursor: pointer; transition: all .2s; font-size: .8rem;
+  }
+  .btn-toggle-off:hover { background: #dc2626; color: white; }
+
+  .badge-avail   { background:#d1fae5; color:#065f46; padding:.25rem .7rem; border-radius:12px; font-size:.8rem; font-weight:600; }
+  .badge-unavail { background:#fee2e2; color:#991b1b; padding:.25rem .7rem; border-radius:12px; font-size:.8rem; font-weight:600; }
+
+  /* Search bar */
+  .search-bar {
+    display: flex; gap: .6rem; margin-bottom: 1rem;
+  }
+  .search-bar input {
+    flex: 1; padding: .6rem 1rem; border: 2px solid #eee; border-radius: 10px;
+    font-family: 'Poppins', sans-serif; font-size: .9rem; outline: none;
+  }
+  .search-bar input:focus { border-color: #0f3460; }
+
+  /* Filter tabs */
+  .filter-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-chip {
+    padding: .4rem .9rem; border-radius: 20px; border: 2px solid #eee;
+    background: white; font-size: .82rem; cursor: pointer; transition: all .2s;
+    font-family: 'Poppins', sans-serif; font-weight: 500; color: #555;
+  }
+  .filter-chip.active, .filter-chip:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+
+  /* Prediction */
+  .demand-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1.5rem; }
+  .demand-group { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,.08); }
+  .demand-group h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; padding-bottom: .5rem; border-bottom: 2px solid; }
+  .demand-group.high   h3 { color: #dc2626; border-color: #dc2626; }
+  .demand-group.medium h3 { color: #d97706; border-color: #d97706; }
+  .demand-group.low    h3 { color: #059669; border-color: #059669; }
+  .demand-item { margin-bottom: .9rem; }
+  .demand-item > span:first-child { font-size: .88rem; color: #555; display: block; margin-bottom: .3rem; }
+  .demand-item > span:last-child  { font-size: .8rem; color: #888; display: block; text-align: right; }
+  .demand-bar { background: #f0f0f0; border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: .2rem; }
+  .demand-group.high   .demand-bar div { background: linear-gradient(90deg,#f87171,#dc2626); height:100%; border-radius:10px; }
+  .demand-group.medium .demand-bar div { background: linear-gradient(90deg,#fbbf24,#d97706); height:100%; border-radius:10px; }
+  .demand-group.low    .demand-bar div { background: linear-gradient(90deg,#34d399,#059669); height:100%; border-radius:10px; }
+
+  /* Category management */
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1.2rem; margin-bottom: 1.5rem; }
+  .cat-card {
+    border-radius: 14px; padding: 1.2rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+  .cat-card.breakfast { background: linear-gradient(135deg,#fef3c7,#fde68a); }
+  .cat-card.lunch     { background: linear-gradient(135deg,#d1fae5,#a7f3d0); }
+  .cat-card.snacks    { background: linear-gradient(135deg,#fee2e2,#fecaca); }
+  .cat-card.dinner    { background: linear-gradient(135deg,#dbeafe,#bfdbfe); }
+  .cat-card-left h4 { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+  .cat-card-left p  { font-size: .82rem; color: #555; }
+  .cat-icon { font-size: 2.5rem; }
+  .cat-items-table { margin-top: 1rem; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 20px; padding: 2rem;
+    width: 90%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    animation: slideUp .3s ease;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .modal-header h3 { font-size: 1.2rem; color: #1a1a2e; }
+  .modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #888; }
+  .modal form { display: flex; flex-direction: column; gap: .9rem; }
+  .modal input, .modal select {
+    padding: .7rem 1rem; border: 2px solid #eee; border-radius: 10px;
+    font-family: 'Poppins', sans-serif; font-size: .9rem; outline: none;
+  }
+  .modal input:focus, .modal select:focus { border-color: #0f3460; }
+  .modal-btns { display: flex; gap: .8rem; margin-top: .5rem; }
+  .modal-btns button { flex: 1; }
+  .btn-secondary {
+    background: white; color: #0f3460; border: 2px solid #0f3460;
+    padding: .7rem 1.4rem; border-radius: 10px; cursor: pointer;
+    font-family: 'Poppins', sans-serif; font-size: .9rem; font-weight: 600; transition: all .2s;
+  }
+  .btn-secondary:hover { background: #0f3460; color: white; }
+
+  /* Order status */
+  .order-summary {
+    display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .order-stat {
+    background: #f8f9fa; border-radius: 10px; padding: .7rem 1.2rem;
+    font-size: .85rem; color: #555; font-weight: 500;
+  }
+  .order-stat strong { color: #1a1a2e; font-size: 1.1rem; display: block; }
+
+  @media(max-width:768px){
+    .sidebar { transform: translateX(-100%); }
+    .main-content { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="admin-layout">
+
+<!-- ── SIDEBAR ──────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <span>🍽️</span>
+    <div>
+      <h2>Amenity Food</h2>
+      <small>Admin Dashboard</small>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Main</div>
+    <a href="#" class="active" onclick="showSection('overview',this)">
+      <i class="fa fa-chart-bar"></i> Overview
+    </a>
+
+    <div class="nav-section-title">Food Management</div>
+    <a href="#" onclick="showSection('add-food',this)">
+      <i class="fa fa-plus-circle"></i> Add New Food
+    </a>
+    <a href="#" onclick="showSection('all-foods',this)">
+      <i class="fa fa-utensils"></i> All Food Items
+    </a>
+    <a href="#" onclick="showSection('categories',this)">
+      <i class="fa fa-tags"></i> Menu Categories
+    </a>
+
+    <div class="nav-section-title">Reports</div>
+    <a href="#" onclick="showSection('orders',this)">
+      <i class="fa fa-receipt"></i> View Orders
+    </a>
+    <a href="#" onclick="showSection('prediction',this)">
+      <i class="fa fa-brain"></i> Prediction Report
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <i class="fa fa-user-shield"></i>
+      <div>
+        <div style="font-weight:600; color:white;">{{ username }}</div>
+        <div style="font-size:.72rem; color:rgba(255,255,255,.5);">Administrator</div>
+      </div>
+    </div>
+    <a href="/logout" class="btn-logout"><i class="fa fa-sign-out-alt"></i> Logout</a>
+  </div>
+</aside>
+
+<!-- ── MAIN CONTENT ─────────────────────────────────────── -->
+<main class="main-content">
+
+  <div class="topbar">
+    <h1 id="pageTitle"><i class="fa fa-chart-bar"></i> Dashboard Overview</h1>
+    <div class="topbar-right">
+      <span class="topbar-badge"><i class="fa fa-shield-alt"></i> Admin</span>
+    </div>
+  </div>
+
+  <!-- ① OVERVIEW ──────────────────────────────────────── -->
+  <section class="page-section active" id="overview">
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon"><i class="fa fa-utensils"></i></div>
+        <div><h3>{{ foods|length }}</h3><p>Total Foods</p></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon"><i class="fa fa-shopping-bag"></i></div>
+        <div><h3>{{ total_ord }}</h3><p>Total Orders</p></div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon"><i class="fa fa-rupee-sign"></i></div>
+        <div><h3>₹{{ "%.0f"|format(total_rev) }}</h3><p>Revenue</p></div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon"><i class="fa fa-brain"></i></div>
+        <div><h3>{{ preds|length }}</h3><p>Predictions</p></div>
+      </div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box">
+        <h3><i class="fa fa-chart-bar"></i> Demand by Food Item</h3>
+        <canvas id="demandChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3><i class="fa fa-chart-pie"></i> Demand Levels</h3>
+        <canvas id="levelChart"></canvas>
+      </div>
+    </div>
+    <!-- Quick summary -->
+    <div class="admin-card">
+      <div class="card-header"><h3><i class="fa fa-th-list"></i> Category Summary</h3></div>
+      <div class="stats-grid" style="margin-bottom:0">
+        {% set cats = ['Breakfast','Lunch','Snacks','Dinner'] %}
+        {% for cat in cats %}
+        <div style="background:#f8f9fa;border-radius:12px;padding:1rem;text-align:center">
+          <div style="font-size:1.5rem">
+            {% if cat=='Breakfast' %}🌅{% elif cat=='Lunch' %}☀️{% elif cat=='Snacks' %}🌤️{% else %}🌙{% endif %}
+          </div>
+          <div style="font-weight:700;color:#1a1a2e;font-size:1.1rem">
+            {{ foods | selectattr('category','eq',cat) | list | length }}
+          </div>
+          <div style="font-size:.82rem;color:#888">{{ cat }} items</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ② ADD NEW FOOD ──────────────────────────────────── -->
+  <section class="page-section" id="add-food">
+    <div class="admin-card">
+      <div class="card-header">
+        <h3><i class="fa fa-plus-circle"></i> Add New Food Item</h3>
+      </div>
+      <form method="POST" action="/admin/add_food" class="admin-form">
+        <input type="text"   name="food_name"  placeholder="Food Name"  required/>
+        <select name="category" required>
+          <option value="">Select Category</option>
+          <option>Breakfast</option>
+          <option>Lunch</option>
+          <option>Snacks</option>
+          <option>Dinner</option>
+        </select>
+        <input type="number" name="price" placeholder="Price (₹)" step="0.01" min="1" required/>
+        <select name="available_status">
+          <option value="1">Available</option>
+          <option value="0">Unavailable</option>
+        </select>
+        <input type="url" name="image_url" placeholder="Image URL (optional)" style="flex:2;min-width:260px"/>
+        <button type="submit" class="btn-primary"><i class="fa fa-plus"></i> Add Food Item</button>
+      </form>
+      <div id="imgPreviewBox" style="margin-top:1rem;display:none">
+        <p style="font-size:.85rem;color:#555;margin-bottom:.5rem">Image Preview:</p>
+        <img id="imgPreview" src="" style="height:120px;border-radius:10px;object-fit:cover;border:2px solid #eee"/>
+      </div>
+      <script>
+        document.querySelector('input[name="image_url"]').addEventListener('input', function(){
+          const box = document.getElementById('imgPreviewBox');
+          const img = document.getElementById('imgPreview');
+          if(this.value){ box.style.display='block'; img.src=this.value; }
+          else { box.style.display='none'; }
+        });
+      </script>
+    </div>
+  </section>
+
+  <!-- ③ ALL FOOD ITEMS ────────────────────────────────── -->
+  <section class="page-section" id="all-foods">
+    <div class="admin-card">
+      <div class="card-header">
+        <h3><i class="fa fa-utensils"></i> All Food Items ({{ foods|length }})</h3>
+      </div>
+      <div class="filter-row" id="catFilter">
+        <button class="filter-chip active" onclick="filterTable('All',this)">All</button>
+        <button class="filter-chip" onclick="filterTable('Breakfast',this)">🌅 Breakfast</button>
+        <button class="filter-chip" onclick="filterTable('Lunch',this)">☀️ Lunch</button>
+        <button class="filter-chip" onclick="filterTable('Snacks',this)">🌤️ Snacks</button>
+        <button class="filter-chip" onclick="filterTable('Dinner',this)">🌙 Dinner</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="foodSearch" placeholder="🔍  Search food items..." oninput="searchFoods()"/>
+      </div>
+      <div class="table-responsive">
+        <table class="admin-table" id="foodTable">
+          <thead>
+            <tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+          {% for food in foods %}
+          <tr data-cat="{{ food['category'] }}" data-name="{{ food['food_name']|lower }}">
+            <td>
+              {% if food.get('image_url') %}
+              <img src="{{ food['image_url'] }}" style="width:55px;height:45px;object-fit:cover;border-radius:8px;border:1px solid #eee"/>
+              {% else %}
+              <div style="width:55px;height:45px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">&#127859;</div>
+              {% endif %}
+            </td>
+            <td><strong>{{ food['food_name'] }}</strong></td>
+            <td>
+              <span class="cat-pill cat-{{ food['category']|lower }}">{{ food['category'] }}</span>
+            </td>
+            <td>₹{{ food['price'] }}</td>
+            <td>
+              <span class="badge-{{ 'avail' if food['available_status'] else 'unavail' }}">
+                {{ '✓ Available' if food['available_status'] else '✗ Unavailable' }}
+              </span>
+            </td>
+            <td>
+              <!-- Edit -->
+              <button class="btn-edit" title="Edit"
+                onclick="openEdit('{{ food['id'] }}','{{ food['food_name'] }}','{{ food['category'] }}',{{ food['price'] }},{{ food['available_status'] }},'{{ food.get('image_url','') }}')">
+                <i class="fa fa-edit"></i>
+              </button>
+              <!-- Toggle availability -->
+              <form method="POST" action="/admin/update_food/{{ food['id'] }}" style="display:inline">
+                <input type="hidden" name="food_name"        value="{{ food['food_name'] }}"/>
+                <input type="hidden" name="category"         value="{{ food['category'] }}"/>
+                <input type="hidden" name="price"            value="{{ food['price'] }}"/>
+                <input type="hidden" name="available_status" value="{{ '0' if food['available_status'] else '1' }}"/>
+                <button type="submit"
+                  class="{{ 'btn-toggle-on' if food['available_status'] else 'btn-toggle-off' }}"
+                  title="{{ 'Mark Unavailable' if food['available_status'] else 'Mark Available' }}">
+                  <i class="fa fa-toggle-{{ 'on' if food['available_status'] else 'off' }}"></i>
+                </button>
+              </form>
+              <!-- Delete -->
+              <form method="POST" action="/admin/delete_food/{{ food['id'] }}" style="display:inline"
+                    onsubmit="return confirm('Delete {{ food['food_name'] }}?')">
+                <button type="submit" class="btn-del" title="Delete"><i class="fa fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ MENU CATEGORIES ───────────────────────────────── -->
+  <section class="page-section" id="categories">
+    <div class="cat-grid">
+      <div class="cat-card breakfast">
+        <div class="cat-card-left">
+          <h4>Breakfast</h4>
+          <p>{{ foods | selectattr('category','eq','Breakfast') | list | length }} items &nbsp;·&nbsp; 6AM – 11AM</p>
+        </div>
+        <div class="cat-icon">🌅</div>
+      </div>
+      <div class="cat-card lunch">
+        <div class="cat-card-left">
+          <h4>Lunch</h4>
+          <p>{{ foods | selectattr('category','eq','Lunch') | list | length }} items &nbsp;·&nbsp; 11AM – 4PM</p>
+        </div>
+        <div class="cat-icon">☀️</div>
+      </div>
+      <div class="cat-card snacks">
+        <div class="cat-card-left">
+          <h4>Snacks</h4>
+          <p>{{ foods | selectattr('category','eq','Snacks') | list | length }} items &nbsp;·&nbsp; 4PM – 7PM</p>
+        </div>
+        <div class="cat-icon">🌤️</div>
+      </div>
+      <div class="cat-card dinner">
+        <div class="cat-card-left">
+          <h4>Dinner</h4>
+          <p>{{ foods | selectattr('category','eq','Dinner') | list | length }} items &nbsp;·&nbsp; 7PM – 10PM</p>
+        </div>
+        <div class="cat-icon">🌙</div>
+      </div>
+    </div>
+
+    {% for cat, icon in [('Breakfast','🌅'),('Lunch','☀️'),('Snacks','🌤️'),('Dinner','🌙')] %}
+    <div class="admin-card">
+      <div class="card-header">
+        <h3>{{ icon }} {{ cat }} Menu</h3>
+        <button class="btn-primary" onclick="openAddCat('{{ cat }}')">
+          <i class="fa fa-plus"></i> Add to {{ cat }}
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for food in foods if food['category'] == cat %}
+          <tr>
+            <td><strong>{{ food['food_name'] }}</strong></td>
+            <td>₹{{ food['price'] }}</td>
+            <td>
+              <span class="badge-{{ 'avail' if food['available_status'] else 'unavail' }}">
+                {{ '✓ Available' if food['available_status'] else '✗ Unavailable' }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-edit"
+                onclick="openEdit('{{ food['id'] }}','{{ food['food_name'] }}','{{ food['category'] }}',{{ food['price'] }},{{ food['available_status'] }})">
+                <i class="fa fa-edit"></i> Edit
+              </button>
+              <form method="POST" action="/admin/update_food/{{ food['id'] }}" style="display:inline">
+                <input type="hidden" name="food_name"        value="{{ food['food_name'] }}"/>
+                <input type="hidden" name="category"         value="{{ food['category'] }}"/>
+                <input type="hidden" name="price"            value="{{ food['price'] }}"/>
+                <input type="hidden" name="available_status" value="{{ '0' if food['available_status'] else '1' }}"/>
+                <button type="submit"
+                  class="{{ 'btn-toggle-on' if food['available_status'] else 'btn-toggle-off' }}">
+                  {{ 'Mark Unavailable' if food['available_status'] else 'Mark Available' }}
+                </button>
+              </form>
+              <form method="POST" action="/admin/delete_food/{{ food['id'] }}" style="display:inline"
+                    onsubmit="return confirm('Delete {{ food['food_name'] }}?')">
+                <button type="submit" class="btn-del"><i class="fa fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- ⑤ ORDERS ────────────────────────────────────────── -->
+  <section class="page-section" id="orders">
+    <div class="admin-card">
+      <div class="card-header">
+        <h3><i class="fa fa-receipt"></i> Sales Orders</h3>
+        <span style="font-size:.85rem;color:#888;">{{ orders|length }} records</span>
+      </div>
+      <div class="order-summary">
+        <div class="order-stat"><strong>{{ orders|length }}</strong>Total Orders</div>
+        <div class="order-stat"><strong>₹{{ "%.0f"|format(total_rev) }}</strong>Total Revenue</div>
+      </div>
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Customer</th><th>Food</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+          {% for o in orders %}
+          <tr>
+            <td style="color:#888;font-size:.8rem">{{ loop.index }}</td>
+            <td><strong>{{ o['customer_name'] }}</strong></td>
+            <td>{{ o['food_name'] }}</td>
+            <td>{{ o['quantity'] }}</td>
+            <td>₹{{ o['unit_price'] }}</td>
+            <td><strong style="color:#0f3460">₹{{ o['total_amount'] }}</strong></td>
+            <td style="font-size:.8rem;color:#888">{{ o['order_date'] }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ PREDICTION ─────────────────────────────────────── -->
+  <section class="page-section" id="prediction">
+    <div class="charts-row" style="margin-bottom:1.5rem">
+      <div class="chart-box">
+        <h3><i class="fa fa-chart-bar"></i> Predicted Demand per Item</h3>
+        <canvas id="demandChart2"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3><i class="fa fa-chart-pie"></i> Demand Level Distribution</h3>
+        <canvas id="levelChart2"></canvas>
+      </div>
+    </div>
+    <div class="demand-cards">
+      <div class="demand-group high">
+        <h3><i class="fa fa-fire"></i> High Demand</h3>
+        {% for p in preds if p['demand_level']=='High' %}
+        <div class="demand-item">
+          <span>{{ p['food_name'] }}</span>
+          <div class="demand-bar"><div style="width:{{ [100, p['predicted_demand']|int]|min }}%"></div></div>
+          <span>{{ p['predicted_demand'] }} units</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="demand-group medium">
+        <h3><i class="fa fa-chart-line"></i> Medium Demand</h3>
+        {% for p in preds if p['demand_level']=='Medium' %}
+        <div class="demand-item">
+          <span>{{ p['food_name'] }}</span>
+          <div class="demand-bar"><div style="width:{{ [100, p['predicted_demand']|int]|min }}%"></div></div>
+          <span>{{ p['predicted_demand'] }} units</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="demand-group low">
+        <h3><i class="fa fa-minus-circle"></i> Low Demand</h3>
+        {% for p in preds if p['demand_level']=='Low' %}
+        <div class="demand-item">
+          <span>{{ p['food_name'] }}</span>
+          <div class="demand-bar"><div style="width:{{ [100, p['predicted_demand']|int]|min }}%"></div></div>
+          <span>{{ p['predicted_demand'] }} units</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ── EDIT MODAL ──────────────────────────────────────── -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-edit"></i> Edit Food Item</h3>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <form method="POST" id="editForm">
+      <input type="text"   name="food_name" id="eName"  placeholder="Food Name" required/>
+      <select name="category" id="eCat">
+        <option>Breakfast</option><option>Lunch</option>
+        <option>Snacks</option><option>Dinner</option>
+      </select>
+      <input type="number" name="price"     id="ePrice" placeholder="Price (₹)" step="0.01" required/>
+      <select name="available_status" id="eStatus">
+        <option value="1">Available</option>
+        <option value="0">Unavailable</option>
+      </select>
+      <input type="url" name="image_url" id="eImageUrl" placeholder="Image URL (optional)"/>
+      <div id="eImgPreviewBox" style="display:none">
+        <img id="eImgPreview" src="" style="height:100px;border-radius:10px;object-fit:cover;border:2px solid #eee;width:100%"/>
+      </div>
+      <div class="modal-btns">
+        <button type="submit" class="btn-primary"><i class="fa fa-save"></i> Save Changes</button>
+        <button type="button" class="btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── ADD TO CATEGORY MODAL ──────────────────────────── -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa fa-plus-circle"></i> Add Food to <span id="addCatName"></span></h3>
+      <button class="modal-close" onclick="closeModal('addCatModal')">✕</button>
+    </div>
+    <form method="POST" action="/admin/add_food">
+      <input type="text"   name="food_name"  placeholder="Food Name" required/>
+      <input type="hidden" name="category"   id="addCatValue"/>
+      <input type="number" name="price"      placeholder="Price (₹)" step="0.01" min="1" required/>
+      <select name="available_status">
+        <option value="1">Available</option>
+        <option value="0">Unavailable</option>
+      </select>
+      <input type="url" name="image_url" placeholder="Image URL (optional)"/>
+      <div class="modal-btns">
+        <button type="submit" class="btn-success"><i class="fa fa-plus"></i> Add Item</button>
+        <button type="button" class="btn-secondary" onclick="closeModal('addCatModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ── Section navigation ──────────────────────────────────
+const titles = {
+  'overview':   '📊 Dashboard Overview',
+  'add-food':   '➕ Add New Food Item',
+  'all-foods':  '🍽️ All Food Items',
+  'categories': '🏷️ Manage Menu Categories',
+  'orders':     '📋 View Orders',
+  'prediction': '🧠 Prediction Report'
+};
+function showSection(id, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').innerHTML = titles[id] || id;
+}
+
+// ── Charts ──────────────────────────────────────────────
+const preds  = {{ preds | map(attribute='food_name') | list | tojson }}.map((name, i) => ({food_name: name, predicted_demand: {{ preds | map(attribute='predicted_demand') | list | tojson }}[i], demand_level: {{ preds | map(attribute='demand_level') | list | tojson }}[i]}));
+const labels = preds.map(p => p.food_name);
+const values = preds.map(p => p.predicted_demand);
+const colors = preds.map(p => p.demand_level==='High'?'#ef4444':p.demand_level==='Medium'?'#f59e0b':'#10b981');
+
+const barCfg = {
+  type: 'bar',
+  data: { labels, datasets: [{ label:'Demand', data:values, backgroundColor:colors, borderRadius:6 }] },
+  options: { responsive:true, plugins:{ legend:{ display:false } } }
+};
+const doughCfg = {
+  type: 'doughnut',
+  data: { labels:['High','Medium','Low'],
+    datasets:[{ data:['High','Medium','Low'].map(l=>preds.filter(p=>p.demand_level===l).length),
+      backgroundColor:['#ef4444','#f59e0b','#10b981'] }] },
+  options: { responsive:true }
+};
+new Chart(document.getElementById('demandChart'),  JSON.parse(JSON.stringify(barCfg)));
+new Chart(document.getElementById('levelChart'),   JSON.parse(JSON.stringify(doughCfg)));
+new Chart(document.getElementById('demandChart2'), JSON.parse(JSON.stringify(barCfg)));
+new Chart(document.getElementById('levelChart2'),  JSON.parse(JSON.stringify(doughCfg)));
+
+// ── Modals ──────────────────────────────────────────────
+function openEdit(id, name, cat, price, status, imgUrl) {
+  document.getElementById('editForm').action = '/admin/update_food/' + id;
+  document.getElementById('eName').value      = name;
+  document.getElementById('eCat').value       = cat;
+  document.getElementById('ePrice').value     = price;
+  document.getElementById('eStatus').value    = status;
+  document.getElementById('eImageUrl').value  = imgUrl || '';
+  const box = document.getElementById('eImgPreviewBox');
+  const img = document.getElementById('eImgPreview');
+  if(imgUrl){ box.style.display='block'; img.src=imgUrl; }
+  else { box.style.display='none'; }
+  document.getElementById('editModal').classList.add('open');
+}
+document.getElementById('eImageUrl').addEventListener('input', function(){
+  const box = document.getElementById('eImgPreviewBox');
+  const img = document.getElementById('eImgPreview');
+  if(this.value){ box.style.display='block'; img.src=this.value; }
+  else { box.style.display='none'; }
+});
+function openAddCat(cat) {
+  document.getElementById('addCatName').textContent  = cat;
+  document.getElementById('addCatValue').value = cat;
+  document.getElementById('addCatModal').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+
+// ── Filter table by category ────────────────────────────
+function filterTable(cat, btn) {
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#foodTable tbody tr').forEach(row => {
+    row.style.display = (cat==='All' || row.dataset.cat===cat) ? '' : 'none';
+  });
+}
+
+// ── Search foods ────────────────────────────────────────
+function searchFoods() {
+  const q = document.getElementById('foodSearch').value.toLowerCase();
+  document.querySelectorAll('#foodTable tbody tr').forEach(row => {
+    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

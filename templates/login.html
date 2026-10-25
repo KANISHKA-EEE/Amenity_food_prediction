@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Login – Amenity Food</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/auth.css') }}"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="auth-bg">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-icon">🍽️</span>
+      <h1>Amenity Food</h1>
+      <p>Smart Food Ordering System</p>
+    </div>
+
+    <div class="tab-switch">
+      <button class="tab-btn active" id="loginTab" onclick="showTab('login')">Login</button>
+      <button class="tab-btn"        id="signupTab" onclick="showTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" method="POST" action="/login" class="auth-form active">
+      {% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+      <div class="input-group">
+        <i class="fa fa-user"></i>
+        <input type="text" name="username" placeholder="Username" required/>
+      </div>
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" name="password" placeholder="Password" required/>
+      </div>
+      <button type="submit" class="btn-primary">Login <i class="fa fa-arrow-right"></i></button>
+      <p class="switch-text">No account? <a href="#" onclick="showTab('signup')">Sign Up</a></p>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" method="POST" action="/signup" class="auth-form">
+      <div class="input-group">
+        <i class="fa fa-user"></i>
+        <input type="text" name="username" placeholder="Username" required/>
+      </div>
+      <div class="input-group">
+        <i class="fa fa-envelope"></i>
+        <input type="email" name="email" placeholder="Email" required/>
+      </div>
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" name="password" placeholder="Password" required/>
+      </div>
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" name="confirm" placeholder="Confirm Password" required/>
+      </div>
+      <button type="submit" class="btn-primary">Create Account <i class="fa fa-user-plus"></i></button>
+      <p class="switch-text">Have an account? <a href="#" onclick="showTab('login')">Login</a></p>
+    </form>
+  </div>
+</div>
+
+<script>
+function showTab(tab) {
+  document.getElementById('loginForm').classList.toggle('active',  tab === 'login');
+  document.getElementById('signupForm').classList.toggle('active', tab === 'signup');
+  document.getElementById('loginTab').classList.toggle('active',  tab === 'login');
+  document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+}
+// Show signup tab if redirected after signup error
+{% if request.path == '/signup' %}showTab('signup');{% endif %}
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Menu – Amenity Food</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand"><span>🍽️</span> Amenity Food</div>
+  <ul class="nav-links">
+    <li><a href="/dashboard"><i class="fa fa-home"></i> Home</a></li>
+    <li><a href="/menu" class="active"><i class="fa fa-utensils"></i> Menu</a></li>
+    <li><a href="/cart"><i class="fa fa-shopping-cart"></i> Cart <span class="cart-badge" id="cartBadge">0</span></a></li>
+    <li><a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a></li>
+  </ul>
+  <div class="nav-user"><i class="fa fa-user-circle"></i> {{ username }}</div>
+</nav>
+
+<div class="page-header">
+  <h1><i class="fa fa-utensils"></i> Full Menu</h1>
+  <p>Browse all available food items across all time slots</p>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-tabs">
+  <button class="filter-btn active" onclick="filterMenu('All',this)">All</button>
+  <button class="filter-btn" onclick="filterMenu('Breakfast',this)">🌅 Breakfast</button>
+  <button class="filter-btn" onclick="filterMenu('Lunch',this)">☀️ Lunch</button>
+  <button class="filter-btn" onclick="filterMenu('Snacks',this)">🌤️ Snacks</button>
+  <button class="filter-btn" onclick="filterMenu('Dinner',this)">🌙 Dinner</button>
+</div>
+
+<div class="food-grid menu-grid" id="menuGrid">
+{% for food in foods %}
+<div class="food-card {% if not food['available_status'] %}unavailable{% endif %}" 
+     data-id="{{ food['id'] }}" data-cat="{{ food['category'] }}">
+  {% set img_url = food.get('image_url') or '' %}
+  {% if img_url and img_url|trim != '' %}
+  <img src="{{ img_url }}" alt="{{ food['food_name'] }}" class="food-img"/>
+  {% elif food['food_name'] == 'Dosa' %}
+  <img src="{{ url_for('static', filename='images/dosa.jpg') }}" alt="Dosa" class="food-img"/>
+  {% elif food['food_name'] == 'Idli' %}
+  <img src="{{ url_for('static', filename='images/idli.jpg') }}" alt="Idli" class="food-img"/>
+  {% elif food['food_name'] == 'Pongal' %}
+  <img src="{{ url_for('static', filename='images/pongal.jpg') }}" alt="Pongal" class="food-img"/>
+  {% elif food['food_name'] == 'Vada' %}
+  <img src="{{ url_for('static', filename='images/vada.jpg') }}" alt="Vada" class="food-img"/>
+  {% elif food['food_name'] == 'Chapati' %}
+  <img src="{{ url_for('static', filename='images/chapati.jpg') }}" alt="Chapati" class="food-img"/>
+  {% elif food['food_name'] == 'Parotta' %}
+  <img src="{{ url_for('static', filename='images/parotta.jpg') }}" alt="Parotta" class="food-img"/>
+  {% elif food['food_name'] == 'Biryani' %}
+  <img src="{{ url_for('static', filename='images/biryani.jpg') }}" alt="Biryani" class="food-img"/>
+  {% elif food['food_name'] == 'Fried Rice' %}
+  <img src="{{ url_for('static', filename='images/friedrice_dinner.jpg') }}" alt="Fried Rice" class="food-img"/>
+  {% elif food['food_name'] == 'Tomato Rice' %}
+  <img src="{{ url_for('static', filename='images/tomatorice2.jpg') }}" alt="Tomato Rice" class="food-img"/>
+  {% elif food['food_name'] == 'Meals' %}
+  <img src="{{ url_for('static', filename='images/meals.jpg') }}" alt="Meals" class="food-img"/>
+  {% elif food['food_name'] == 'Coffee' %}
+  <img src="{{ url_for('static', filename='images/coffee.jpg') }}" alt="Coffee" class="food-img"/>
+  {% elif food['food_name'] == 'Puffs' %}
+  <img src="{{ url_for('static', filename='images/puffs.jpg') }}" alt="Puffs" class="food-img"/>
+  {% elif food['food_name'] == 'Bajji Bonda' %}
+  <img src="{{ url_for('static', filename='images/bajjibonda.jpg') }}" alt="Bajji Bonda" class="food-img"/>
+  {% elif food['food_name'] == 'Sandwich' %}
+  <img src="{{ url_for('static', filename='images/sandwich.jpg') }}" alt="Sandwich" class="food-img"/>
+  {% elif food['food_name'] == 'French Fries' %}
+  <img src="{{ url_for('static', filename='images/frenchfries.jpg') }}" alt="French Fries" class="food-img"/>
+  {% elif food['food_name'] == 'Cutlet' %}
+  <img src="{{ url_for('static', filename='images/cutlet.jpg') }}" alt="Cutlet" class="food-img"/>
+  {% elif food['food_name'] == 'Samosa' %}
+  <img src="{{ url_for('static', filename='images/samosa.jpg') }}" alt="Samosa" class="food-img"/>
+  {% elif food['food_name'] == 'Tea' %}
+  <img src="{{ url_for('static', filename='images/tea.jpg') }}" alt="Tea" class="food-img"/>
+  {% elif food['food_name'] == 'Poori' %}
+  <img src="{{ url_for('static', filename='images/poori.jpg') }}" alt="Poori" class="food-img"/>
+  {% elif food['food_name'] == 'Bread Omelette' %}
+  <img src="{{ url_for('static', filename='images/breadomelette.jpg') }}" alt="Bread Omelette" class="food-img"/>
+  {% elif food['food_name'] == 'Semiya' %}
+  <img src="{{ url_for('static', filename='images/semiya.jpg') }}" alt="Semiya" class="food-img"/>
+  {% elif food['food_name'] == 'Masal Dosa' %}
+  <img src="{{ url_for('static', filename='images/masaldosa.jpg') }}" alt="Masal Dosa" class="food-img"/>
+  {% elif food['food_name'] == 'Onion Dosa' %}
+  <img src="{{ url_for('static', filename='images/oniondosa.jpg') }}" alt="Onion Dosa" class="food-img"/>
+  {% elif food['food_name'] == 'Sambar Rice' %}
+  <img src="{{ url_for('static', filename='images/sambarrice.jpg') }}" alt="Sambar Rice" class="food-img"/>
+  {% elif food['food_name'] == 'Lemon Rice' %}
+  <img src="{{ url_for('static', filename='images/lemonrice.jpg') }}" alt="Lemon Rice" class="food-img"/>
+  {% elif food['food_name'] == 'Curd Rice' %}
+  <img src="{{ url_for('static', filename='images/curdrice.jpg') }}" alt="Curd Rice" class="food-img"/>
+  {% else %}
+  <div class="food-emoji">{{ ['🥞','🍛','🍱','🥘','🍜','🥗','🧆','🥙','☕','🍵','🫓','🫔'][loop.index0 % 12] }}</div>
+  {% endif %}
+  <div class="cat-tag">{{ food['category'] }}</div>
+  <h3>{{ food['food_name'] }}</h3>
+  <p class="food-price">₹{{ food['price'] }}</p>
+  {% if food['available_status'] %}
+    <!-- <span class="badge-avail">&#10003; Available</span> -->
+    <div class="qty-control">
+      <button onclick="changeQty(this,-1)">&#8722;</button>
+      <input type="number" value="1" min="1" max="20" class="qty-input"/>
+      <button onclick="changeQty(this,1)">&#43;</button>
+    </div>
+    <button class="btn-order" onclick="addToCart('{{ food['id'] }}','{{ food['food_name'] }}',{{ food['price'] }},this)">
+      <i class="fa fa-cart-plus"></i> Add to Cart
+    </button>
+  {% else %}
+    <span class="badge-unavail">&#10007; Unavailable</span>
+    <button class="btn-alt" onclick="getAlternatives('{{ food['id'] }}',this)">
+      <i class="fa fa-exchange-alt"></i> See Alternatives
+    </button>
+    <div class="alt-list" id="alt-{{ food['id'] }}"></div>
+  {% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static',filename='js/cart.js') }}"></script>
+<script>
+function filterMenu(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#menuGrid .food-card').forEach(card => {
+    card.style.display = (cat === 'All' || card.dataset.cat === cat) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

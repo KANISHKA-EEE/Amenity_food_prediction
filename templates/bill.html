@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Invoice – Amenity Food</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<nav class="navbar no-print">
+  <div class="nav-brand"><span>🍽️</span> Amenity Food</div>
+  <ul class="nav-links">
+    <li><a href="/dashboard"><i class="fa fa-home"></i> Home</a></li>
+    <li><a href="/menu"><i class="fa fa-utensils"></i> Menu</a></li>
+    <li><a href="/cart"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+    <li><a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a></li>
+  </ul>
+</nav>
+
+<div class="bill-wrapper">
+  <div class="bill-card" id="invoice">
+    <!-- Header -->
+    <div class="bill-header">
+      <div class="bill-logo">🍽️</div>
+      <h1>Amenity Food</h1>
+      <p>Smart Food Ordering System</p>
+      <div class="bill-divider"></div>
+      <div class="bill-meta">
+        <span><i class="fa fa-calendar"></i> {{ now }}</span>
+        <span><i class="fa fa-user"></i> {{ username }}</span>
+      </div>
+    </div>
+
+    <!-- Order Table -->
+    <table class="bill-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Food Item</th>
+          <th>Unit Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ o['food_name'] }}</td>
+          <td>₹{{ o['unit_price'] }}</td>
+          <td>{{ o['quantity'] }}</td>
+          <td>₹{{ o['total_amount'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="bill-totals">
+      {% set subtotal = grand_total / 1.05 %}
+      {% set tax = grand_total - subtotal %}
+      <div class="bill-row"><span>Subtotal</span><span>₹{{ "%.2f"|format(subtotal) }}</span></div>
+      <div class="bill-row"><span>GST (5%)</span><span>₹{{ "%.2f"|format(tax) }}</span></div>
+      <div class="bill-row grand"><span>Grand Total</span><span>₹{{ "%.2f"|format(grand_total) }}</span></div>
+    </div>
+
+    <div class="bill-footer">
+      <p>Thank you for dining with us! 🙏</p>
+      <p>Visit again at Amenity Food</p>
+      <div class="bill-divider"></div>
+      <small>This is a computer-generated invoice.</small>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="bill-actions no-print">
+    <button class="btn-primary" onclick="window.print()">
+      <i class="fa fa-print"></i> Print Invoice
+    </button>
+    <a href="/dashboard" class="btn-secondary">
+      <i class="fa fa-home"></i> Back to Home
+    </a>
+    <a href="/menu" class="btn-hero" style="text-decoration:none;padding:.7rem 1.5rem;border-radius:8px">
+      <i class="fa fa-plus"></i> Order More
+    </a>
+  </div>
+</div>
+
+<style>
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .bill-wrapper { padding: 0; }
+  .bill-card { box-shadow: none; max-width: 100%; }
+}
+</style>
+</body>
+</html>

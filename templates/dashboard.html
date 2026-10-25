@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard – Amenity Food</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar">
+  <div class="nav-brand"><span>&#127869;&#65039;</span> Amenity Food</div>
+  <ul class="nav-links">
+    <li><a href="/dashboard" class="active"><i class="fa fa-home"></i> Home</a></li>
+    <li><a href="/menu"><i class="fa fa-utensils"></i> Menu</a></li>
+    <li><a href="/cart"><i class="fa fa-shopping-cart"></i> Cart <span class="cart-badge" id="cartBadge">0</span></a></li>
+    <li><a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a></li>
+  </ul>
+  <div class="nav-user"><i class="fa fa-user-circle"></i> {{ username }}</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Welcome back, {{ username }}! &#128075;</h1>
+    <p>Craving something delicious? Order fresh food served right on time.</p>
+    <div class="time-badge"><i class="fa fa-clock"></i> {{ now }}</div>
+    {% if slot %}
+    <div class="slot-badge"><i class="fa fa-sun"></i> {{ slot }} Time</div>
+    {% endif %}
+    <a href="/menu" class="btn-hero">Order Now <i class="fa fa-arrow-right"></i></a>
+  </div>
+  <div class="hero-img">&#127858;</div>
+</section>
+
+<!-- TIME SLOTS INFO -->
+<section class="slots-section">
+  <h2 class="section-title">Today's Menu Schedule</h2>
+  <div class="slots-grid">
+    <div class="slot-card {% if slot=='Breakfast' %}active-slot{% endif %}">
+      <div class="slot-icon">&#127749;&#65039;</div>
+      <h3>Breakfast</h3>
+      <p>6 AM – 11 AM</p>
+      <ul><li>Idli</li><li>Dosa</li><li>Pongal</li><li>Vada</li><li>Poori</li><li>Chapati</li><li>Semiya</li><li>Parotta</li><li>Masal Dosa</li><li>Onion Dosa</li></ul>
+    </div>
+    <div class="slot-card {% if slot=='Lunch' %}active-slot{% endif %}">
+      <div class="slot-icon">&#9728;&#65039;</div>
+      <h3>Lunch</h3>
+      <p>11 AM – 4 PM</p>
+      <ul><li>Meals</li><li>Fried Rice</li><li>Biryani</li><li>Tomato Rice</li><li>Sambar Rice</li><li>Lemon Rice</li><li>Curd Rice</li></ul>
+    </div>
+    <div class="slot-card {% if slot=='Snacks' %}active-slot{% endif %}">
+      <div class="slot-icon">&#127780;&#65039;</div>
+      <h3>Snacks</h3>
+      <p>4 PM – 7 PM</p>
+      <ul><li>Samosa</li><li>Puffs</li><li>Tea</li><li>Coffee</li><li>Bread Omelette</li><li>Bajji Bonda</li><li>Sandwich</li><li>French Fries</li><li>Cutlet</li></ul>
+    </div>
+    <div class="slot-card {% if slot=='Dinner' %}active-slot{% endif %}">
+      <div class="slot-icon">&#127769;</div>
+      <h3>Dinner</h3>
+      <p>7 PM – 10 PM</p>
+      <ul><li>Chapati</li><li>Dosa</li><li>Parotta</li><li>Idli</li><li>Fried Rice</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- AVAILABLE FOODS NOW -->
+<section class="available-section">
+  {% if slot %}
+  <h2 class="section-title">Available Now – {{ slot }} &#128293;</h2>
+  {% if foods %}
+  <div class="food-grid">
+    {% for food in foods %}
+    <div class="food-card {% if not food['available_status'] %}unavailable{% endif %}" data-id="{{ food['id'] }}">
+      {% set fname = food['food_name']|lower %}
+      {% set img_url = food.get('image_url') or '' %}
+      {% if img_url and img_url|trim != '' %}
+        <img src="{{ img_url }}" alt="{{ food['food_name'] }}" class="food-img"/>
+      {% elif fname == 'dosa' %}<img src="{{ url_for('static', filename='images/dosa.jpg') }}" alt="Dosa" class="food-img"/>
+      {% elif fname == 'idli' %}<img src="{{ url_for('static', filename='images/idli.jpg') }}" alt="Idli" class="food-img"/>
+      {% elif fname == 'pongal' %}<img src="{{ url_for('static', filename='images/pongal.jpg') }}" alt="Pongal" class="food-img"/>
+      {% elif fname == 'vada' %}<img src="{{ url_for('static', filename='images/vada.jpg') }}" alt="Vada" class="food-img"/>
+      {% elif fname == 'chapati' %}<img src="{{ url_for('static', filename='images/chapati.jpg') }}" alt="Chapati" class="food-img"/>
+      {% elif fname == 'parotta' %}<img src="{{ url_for('static', filename='images/parotta.jpg') }}" alt="Parotta" class="food-img"/>
+      {% elif fname == 'biryani' %}<img src="{{ url_for('static', filename='images/biryani.jpg') }}" alt="Biryani" class="food-img"/>
+      {% elif fname == 'fried rice' %}<img src="{{ url_for('static', filename='images/friedrice_dinner.jpg') }}" alt="Fried Rice" class="food-img"/>
+      {% elif fname == 'tomato rice' %}<img src="{{ url_for('static', filename='images/tomatorice2.jpg') }}" alt="Tomato Rice" class="food-img"/>
+      {% elif fname == 'meals' %}<img src="{{ url_for('static', filename='images/meals.jpg') }}" alt="Meals" class="food-img"/>
+      {% elif fname == 'coffee' %}<img src="{{ url_for('static', filename='images/coffee.jpg') }}" alt="Coffee" class="food-img"/>
+      {% elif fname == 'puffs' %}<img src="{{ url_for('static', filename='images/puffs.jpg') }}" alt="Puffs" class="food-img"/>
+      {% elif fname == 'bajji bonda' %}<img src="{{ url_for('static', filename='images/bajjibonda.jpg') }}" alt="Bajji Bonda" class="food-img"/>
+      {% elif fname == 'sandwich' %}<img src="{{ url_for('static', filename='images/sandwich.jpg') }}" alt="Sandwich" class="food-img"/>
+      {% elif fname == 'french fries' %}<img src="{{ url_for('static', filename='images/frenchfries.jpg') }}" alt="French Fries" class="food-img"/>
+      {% elif fname == 'cutlet' %}<img src="{{ url_for('static', filename='images/cutlet.jpg') }}" alt="Cutlet" class="food-img"/>
+      {% elif fname == 'samosa' %}<img src="{{ url_for('static', filename='images/samosa.jpg') }}" alt="Samosa" class="food-img"/>
+      {% elif fname == 'tea' %}<img src="{{ url_for('static', filename='images/tea.jpg') }}" alt="Tea" class="food-img"/>
+      {% elif fname == 'poori' %}<img src="{{ url_for('static', filename='images/poori.jpg') }}" alt="Poori" class="food-img"/>
+      {% elif fname == 'bread omelette' %}<img src="{{ url_for('static', filename='images/breadomelette.jpg') }}" alt="Bread Omelette" class="food-img"/>
+      {% elif fname == 'semiya' %}<img src="{{ url_for('static', filename='images/semiya.jpg') }}" alt="Semiya" class="food-img"/>
+      {% elif fname == 'masal dosa' %}<img src="{{ url_for('static', filename='images/masaldosa.jpg') }}" alt="Masal Dosa" class="food-img"/>
+      {% elif fname == 'onion dosa' %}<img src="{{ url_for('static', filename='images/oniondosa.jpg') }}" alt="Onion Dosa" class="food-img"/>
+      {% elif fname == 'sambar rice' %}<img src="{{ url_for('static', filename='images/sambarrice.jpg') }}" alt="Sambar Rice" class="food-img"/>
+      {% elif fname == 'lemon rice' %}<img src="{{ url_for('static', filename='images/lemonrice.jpg') }}" alt="Lemon Rice" class="food-img"/>
+      {% elif fname == 'curd rice' %}<img src="{{ url_for('static', filename='images/curdrice.jpg') }}" alt="Curd Rice" class="food-img"/>
+      {% else %}<div class="food-emoji">&#127859;</div>
+      {% endif %}
+      <h3>{{ food['food_name'] }}</h3>
+      <p class="food-cat">{{ food['category'] }}</p>
+      <p class="food-price">&#8377;{{ food['price'] }}</p>
+      {% if food['available_status'] %}
+        <span class="badge-avail">&#10003; Available</span>
+        <div class="qty-control">
+          <button onclick="changeQty(this,-1)">&#8722;</button>
+          <input type="number" value="1" min="1" max="20" class="qty-input"/>
+          <button onclick="changeQty(this,1)">&#43;</button>
+        </div>
+        <button class="btn-order" onclick="addToCart('{{ food['id'] }}','{{ food['food_name'] }}',{{ food['price'] }},this)">
+          <i class="fa fa-cart-plus"></i> Add to Cart
+        </button>
+      {% else %}
+        <span class="badge-unavail">&#10007; Unavailable</span>
+        <button class="btn-alt" onclick="getAlternatives('{{ food['id'] }}',this)">
+          <i class="fa fa-exchange-alt"></i> See Alternatives
+        </button>
+        <div class="alt-list" id="alt-{{ food['id'] }}"></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="fa fa-clock fa-3x"></i><p>No items available right now.</p></div>
+  {% endif %}
+  {% else %}
+  <div class="empty-state"><i class="fa fa-moon fa-3x"></i><p>Food service is closed right now (10 PM – 6 AM). Come back soon!</p></div>
+  {% endif %}
+</section>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static',filename='js/cart.js') }}"></script>
+</body>
+</html>
